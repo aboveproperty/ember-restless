@@ -34,19 +34,21 @@ var JSONSerializer = Serializer.extend({
    @method deserialize
    @param {RESTless.Model} resource model resource
    @param {Object} data json data
+   @param {Boolena} hasMany
    @return {RESTless.Model}
    */
-  deserialize: function (resource, data) {
+  deserialize: function (resource, data, hasMany) {
     var key, prop, meta;
 
     if (!data) {
       return resource;
     }
 
+    // Check only if not comming from hasMany array
     // Check for wrapped object by resource name: { post: { id:1, name:'post 1' } }
     // This is the default from ActiveRecord
     key = this._keyForResource(resource);
-    if (data[key]) {
+    if (data[key] && !hasMany) {
       data = data[key];
     }
 
@@ -143,7 +145,7 @@ var JSONSerializer = Serializer.extend({
       for (i = 0; i < len; i++) {
         item = arrayData[i];
         if (klass && typeof item === 'object') {
-          item = klass.create({isNew: false}).deserialize(item);
+          item = klass.create({isNew: false}).deserialize(item, true);
         }
         content.push(item);
       }

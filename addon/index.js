@@ -1,7 +1,7 @@
 import RESTless from 'ember-restless/core';
 import Client from 'ember-restless/client';
 import Model from 'ember-restless/model/model';
-import { attr, belongsTo, hasMany } from 'ember-restless/model/attribute';
+import {attr, belongsTo, hasMany} from 'ember-restless/model/attribute';
 import ReadOnlyModel from 'ember-restless/model/read-only-model';
 import RecordArray from 'ember-restless/model/record-array';
 import Adapter from 'ember-restless/adapters/adapter';
@@ -18,8 +18,8 @@ import './ext/date';
 
 
 /*
-  Export public modules to namespace
-*/
+ Export public modules to namespace
+ */
 RESTless.Client = Client;
 RESTless.Adapter = Adapter;
 RESTless.RESTAdapter = RESTAdapter;
@@ -37,8 +37,24 @@ RESTless.NumberTransform = NumberTransform;
 RESTless.StringTransform = StringTransform;
 RESTless.DateTransform = DateTransform;
 RESTless.JSONTransforms = JSONTransforms;
-/*
-  Expose to global namespace
-  and create shortcut alias `RL`
- */
+
 export default RESTless;
+export {
+    Client,
+    Adapter,
+    RESTAdapter,
+    attr,
+    belongsTo,
+    hasMany,
+    Model,
+    ReadOnlyModel,
+    RecordArray,
+    Serializer,
+    JSONSerializer,
+    Transform,
+    BooleanTransform,
+    NumberTransform,
+    StringTransform,
+    DateTransform,
+    JSONTransforms
+};
