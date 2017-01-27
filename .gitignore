@@ -20,3 +20,4 @@ bower_components
 dist/*+addons.js
 docs/
 docs-theme/
+tmp
