@@ -192,6 +192,19 @@ test('becomes dirty when a nested relationship becomes dirty', function (assert)
     assert.ok(postGroup.get('isDirty'), 'dirtying a nested relationship dirties the root object');
 });
 
+test('becomes dirty when a nested relationship becomes dirty with new pushed object', function (assert) {
+    var postGroup = PostGroup.load({
+        id: 1,
+        featured: [{id: 1, title: 'hello'}]
+    });
+
+    assert.ok(!postGroup.get('isDirty'), 'freshly loaded model is not dirty');
+
+    postGroup.get('featured').pushObject(Post.create({title: 'A title'}));
+
+    assert.ok(postGroup.get('isDirty'), 'dirtying a nested relationship dirties the root object');
+});
+
 test('does not become dirty when a readOnly nested relationship becomes dirty', function (assert) {
     var postGroup = PostGroup.load({
         id: 3,
