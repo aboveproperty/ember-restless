@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import Transform from './base';
-
+import moment from "npm:moment";
 // Date.prototype.toISOString shim
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
 var toISOString = Date.prototype.toISOString || function() {
@@ -30,11 +30,8 @@ if (Ember.SHIM_ES5) {
 export default Transform.extend({
   deserialize: function(serialized) {
     var type = typeof serialized;
-
-    if (type === 'string') {
-      return new Date(Ember.Date.parse(serialized));
-    } else if (type === 'number') {
-      return new Date(serialized);
+    if (type === 'string' || type === 'number') {
+        return moment(serialized);
     } else if (serialized === null || serialized === undefined) {
       // if the value is not present in the data,
       // return undefined, not null.
@@ -45,8 +42,8 @@ export default Transform.extend({
   },
 
   serialize: function(date) {
-    if (date instanceof Date) {
-      return toISOString.call(date);
+    if (date instanceof moment) {
+      return date.format();
     } else {
       return null;
     }

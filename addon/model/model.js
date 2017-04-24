@@ -57,18 +57,18 @@ var Model = Ember.Object.extend(ModelStateMixin, Ember.Copyable, {
      *
      * */
     setValidated: function () {
-        let fields = Ember.get(this.constructor, 'fields')
+        let fields = Ember.get(this.constructor, 'fields');
         var field, fieldMeta;
         for (field in fields) {
             fieldMeta = fields[field];
             if (fieldMeta.hasMany) {
                 this.get(field).forEach((subEl)=> {
                     subEl.setValidated();
-                })
+                });
             }
         }
 
-        this.set('didValidate', true)
+        this.set('didValidate', true);
     },
     /**
      _onPropertyChange: called when any property of the model changes
