@@ -194,6 +194,9 @@ var Model = Ember.Object.extend(ModelStateMixin, Ember.Copyable, {
      */
     deserializeProperty: function (prop, value) {
         return get(this.constructor, 'adapter.serializer').deserializeProperty(this, prop, value);
+    },
+    ready: function(){
+
     }
 });
 
@@ -220,6 +223,7 @@ Model.reopenClass({
             instance = this._super.apply(this, arguments);
         }
         instance.set('_isReady', true);
+        instance.ready();
         return instance;
     },
 
