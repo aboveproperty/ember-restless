@@ -1,17 +1,60 @@
-export var Client           = RESTless.Client;
-export var Adapter          = RESTless.Adapter;
-export var RESTAdapter      = RESTless.RESTAdapter;
-export var attr             = RESTless.attr;
-export var belongsTo        = RESTless.belongsTo;
-export var hasMany          = RESTless.hasMany;
-export var Model            = RESTless.Model;
-export var ReadOnlyModel    = RESTless.ReadOnlyModel;
-export var RecordArray      = RESTless.RecordArray;
-export var Serializer       = RESTless.Serializer;
-export var JSONSerializer   = RESTless.JSONSerializer;
-export var Transform        = RESTless.Transform;
-export var BooleanTransform = RESTless.BooleanTransform;
-export var NumberTransform  = RESTless.NumberTransform;
-export var StringTransform  = RESTless.StringTransform;
-export var DateTransform    = RESTless.DateTransform;
-export var JSONTransforms   = RESTless.JSONTransforms;
+import RESTless from 'ember-restless/core';
+import Client from 'ember-restless/client';
+import Model from 'ember-restless/model/model';
+import {attr, belongsTo, hasMany} from 'ember-restless/model/attribute';
+import ReadOnlyModel from 'ember-restless/model/read-only-model';
+import RecordArray from 'ember-restless/model/record-array';
+import Adapter from 'ember-restless/adapters/adapter';
+import RESTAdapter from 'ember-restless/adapters/rest-adapter';
+import Serializer from 'ember-restless/serializers/serializer';
+import JSONSerializer from 'ember-restless/serializers/json-serializer';
+import Transform from 'ember-restless/transforms/base';
+import BooleanTransform from 'ember-restless/transforms/boolean';
+import NumberTransform from 'ember-restless/transforms/number';
+import StringTransform from 'ember-restless/transforms/string';
+import DateTransform from 'ember-restless/transforms/date';
+import JSONTransforms from 'ember-restless/transforms/json';
+import './ext/date';
+
+
+/*
+ Export public modules to namespace
+ */
+RESTless.Client = Client;
+RESTless.Adapter = Adapter;
+RESTless.RESTAdapter = RESTAdapter;
+RESTless.attr = attr;
+RESTless.belongsTo = belongsTo;
+RESTless.hasMany = hasMany;
+RESTless.Model = Model;
+RESTless.ReadOnlyModel = ReadOnlyModel;
+RESTless.RecordArray = RecordArray;
+RESTless.Serializer = Serializer;
+RESTless.JSONSerializer = JSONSerializer;
+RESTless.Transform = Transform;
+RESTless.BooleanTransform = BooleanTransform;
+RESTless.NumberTransform = NumberTransform;
+RESTless.StringTransform = StringTransform;
+RESTless.DateTransform = DateTransform;
+RESTless.JSONTransforms = JSONTransforms;
+
+export default RESTless;
+export {
+    Client,
+    Adapter,
+    RESTAdapter,
+    attr,
+    belongsTo,
+    hasMany,
+    Model,
+    ReadOnlyModel,
+    RecordArray,
+    Serializer,
+    JSONSerializer,
+    Transform,
+    BooleanTransform,
+    NumberTransform,
+    StringTransform,
+    DateTransform,
+    JSONTransforms
+};

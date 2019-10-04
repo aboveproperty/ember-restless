@@ -1,33 +1,52 @@
 {
   "name": "ember-restless",
-  "title": "Ember RESTless",
-  "description": "A lightweight data model library for Ember.js",
-  "version": "0.7.14",
-  "repository": "https://github.com/bustlelabs/ember-restless.git",
-  "homepage": "https://github.com/bustlelabs/ember-restless",
-  "author": "Garth Poitras <garth@bustle.com>",
-  "license": "MIT",
-  "keywords": [
-    "ember",
-    "ember-addon",
-    "ember-data",
-    "REST",
-    "model",
-    "json"
-  ],
-  "scripts": {
-    "build": "gulp build",
-    "test": "gulp test --verbose"
+  "version": "0.0.0",
+  "description": "The default blueprint for ember-cli addons.",
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
   },
+  "scripts": {
+    "build": "ember build",
+    "start": "ember server",
+    "test": "ember try:each"
+  },
+  "repository": "",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "author": "",
+  "license": "MIT",
   "devDependencies": {
-    "del": "^2.2.0",
-    "esperanto": "^0.7.0",
-    "gulp": "^3.9.0",
-    "gulp-file": "^0.2.0",
-    "gulp-header": "^1.7.1",
-    "gulp-jshint": "^1.12.0",
-    "gulp-open": "^1.0.0",
-    "gulp-qunit": "^1.3.0",
-    "gulp-replace": "^0.5.4"
+    "broccoli-asset-rev": "^2.4.2",
+    "ember-ajax": "^2.0.1",
+    "ember-cli": "2.8.0",
+    "ember-cli-app-version": "^1.0.0",
+    "ember-cli-dependency-checker": "^1.2.0",
+    "ember-cli-htmlbars": "^1.0.3",
+    "ember-cli-htmlbars-inline-precompile": "^0.3.1",
+    "ember-cli-inject-live-reload": "^1.4.0",
+    "ember-cli-jshint": "^1.0.0",
+    "ember-cli-qunit": "^2.1.0",
+    "ember-cli-release": "^0.2.9",
+    "ember-cli-sri": "^2.1.0",
+    "ember-cli-test-loader": "^1.1.0",
+    "ember-cli-uglify": "^1.2.0",
+    "ember-disable-prototype-extensions": "^1.1.0",
+    "ember-export-application-global": "^1.0.5",
+    "ember-load-initializers": "^0.5.1",
+    "ember-resolver": "^2.0.3",
+    "ember-welcome-page": "^1.0.1",
+    "loader.js": "^4.0.1",
+    "moment": "^2.15.2"
+  },
+  "keywords": [
+    "ember-addon"
+  ],
+  "dependencies": {
+    "ember-cli-babel": "^5.1.6"
+  },
+  "ember-addon": {
+    "configPath": "tests/dummy/config"
   }
 }

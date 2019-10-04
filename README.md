@@ -4,10 +4,11 @@ RESTless is a lightweight data model library for [Ember.js](http://emberjs.com).
 
 Out of the box, you can quickly and easily map data between a JSON REST API and your Ember.js application.  It's goal is to create a simple API to perform CRUD operations without having to write ajax requests or handle model serialization & deserialization.  RESTless is *not* a client-side data store.
 
-See the full [API documentation](http://bustlelabs.github.io/ember-restless/api/).  
+See the full [API documentation](http://bustlelabs.github.io/ember-restless/api/).
 
 See the [change log](CHANGELOG.md) for the latest features and API changes.
 
+** Project updated to Ember CLI addon, documentation is not updated yet **
 
 ## Guide
 - [Getting started](#getting-started)
@@ -30,7 +31,7 @@ See the [change log](CHANGELOG.md) for the latest features and API changes.
 ## Getting started
 
 **Install:**
- 
+
 ```npm install --save-dev ember-restless```
 
 **Module usage:**
@@ -40,7 +41,7 @@ import RL from 'ember-restless'; // imports entire library
 import { Model, attr } from 'ember-restless'; // or import individual modules
 ```
 
-**Initializer:**  
+**Initializer:**
 Create an initializer in your ember-cli app:
 `app/initializers/restless.js`:
 
@@ -63,7 +64,7 @@ export default {
 ### Defining a RESTAdapter
 
 The REST adapter is responsible for communicating with your backend REST service.
-Here, you can optionally set the host, and a namespace.  
+Here, you can optionally set the host, and a namespace.
 For example, if your REST API is located at http://api.example.com/v1
 ```js
 import { RESTAdapter } from 'ember-restless';
@@ -82,7 +83,7 @@ application.set('Client', Client.create({
 
 ### Models
 
-Each model you create should extend Model:  
+Each model you create should extend Model:
 
 ```js
 import { Model, attr } from 'ember-restless';
@@ -122,7 +123,7 @@ var Profile = Model.extend({
 });
 ```
 
-For one-to-many relationships, use the _hasMany_ helper.  
+For one-to-many relationships, use the _hasMany_ helper.
 For example, if a ```Post``` model contains an array of ```Tag``` models:
 ```js
 var Tag = Model.extend({
@@ -176,7 +177,7 @@ var post = Post.create({
 
 ### Saving records
 
-Simply call: ```saveRecord()```  
+Simply call: ```saveRecord()```
 The Adapter will automatically POST to save a new record, or PUT to update an existing record.
 
 ```js
@@ -208,7 +209,7 @@ post.reloadRecord();
 
 ### Loading records
 
-You can manually populate records using raw data.  
+You can manually populate records using raw data.
 Use the ```load``` and ```loadMany``` convenience methods:
 
 ```js
@@ -283,8 +284,8 @@ post.saveRecord().then(function(record) {
 });
 ```
 
-**To take advantage of promises when finding records, use ```fetch()``` instead of ```find()```**  
-```fetch()``` returns a promise, while ```find()``` will return entities that will update when resolved.  
+**To take advantage of promises when finding records, use ```fetch()``` instead of ```find()```**
+```fetch()``` returns a promise, while ```find()``` will return entities that will update when resolved.
 ```js
 var posts = Post.fetch().then(function(records) {
   // Success!
@@ -305,8 +306,8 @@ export default Ember.Route.extend({
 ## Advanced
 
 ### Changing resource endpoints
-Sometimes the name of your Ember model is different than the API endpoint.  
-For example if a ```CurrentUser``` model needs to point to ```/users``` and ```/user/1```  
+Sometimes the name of your Ember model is different than the API endpoint.
+For example if a ```CurrentUser``` model needs to point to ```/users``` and ```/user/1```
 ```js
 var CurrentUser = Model.extend();
 CurrentUser.reopenClass({
@@ -323,7 +324,7 @@ adapter.configure('plurals', {
 ```
 
 ### Changing the the primary key for a model
-The primary key for all models defaults to 'id'. 
+The primary key for all models defaults to 'id'.
 You can customize it per model class to match your API:
 ```js
 adapter.map('post', {
@@ -359,7 +360,7 @@ Results in e.g. ```User.find()``` => ```http://api.example.com/users?api_key=abc
 
 ### Forcing content type extensions
 If you want the RESTAdapter to add extensions to requests:
-For example ```/users.json``` and ```/user/1.json```  
+For example ```/users.json``` and ```/user/1.json```
 ```js
 var adapter = RESTAdapter.create({
   useContentTypeExtension: true
@@ -421,4 +422,5 @@ Install test dependencies: ```bower install```
 ```shell
 npm test
 ```
-or open tests/index.html in a browser  
+or open tests/index.html in a browser
+
