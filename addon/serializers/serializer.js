@@ -41,7 +41,7 @@ var Serializer = Ember.Object.extend({
       type = Ember.String.camelize(type);
 
       // Container support
-      return RESTless.get('client.application').resolveRegistration('model:' + type);
+      return Ember.getOwner(this).factoryFor('model:' + type);
     }
     return type;
   },

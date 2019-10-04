@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import Transform from './base';
-import moment from "npm:moment";
+import moment from "moment";
 // Date.prototype.toISOString shim
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
 var toISOString = Date.prototype.toISOString || function() {

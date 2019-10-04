@@ -1,5 +1,5 @@
 import RESTless from 'ember-restless/core';
-import Client from 'ember-restless/client';
+import Client from 'ember-restless/ext/client';
 import Model from 'ember-restless/model/model';
 import {attr, belongsTo, hasMany} from 'ember-restless/model/attribute';
 import ReadOnlyModel from 'ember-restless/model/read-only-model';
