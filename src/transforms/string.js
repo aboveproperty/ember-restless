@@ -1,4 +1,8 @@
-RESTless.StringTransform = RESTless.Transform.extend({
+import Transform from './base';
+
+var isNone = Ember.isNone;
+
+export default Transform.extend({
   deserialize: function(serialized) {
     return isNone(serialized) ? null : String(serialized);
   },

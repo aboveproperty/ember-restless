@@ -1,10 +1,38 @@
-RESTless.DateTransform = RESTless.Transform.extend({
+import Transform from './base';
+
+// Date.prototype.toISOString shim
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+var toISOString = Date.prototype.toISOString || function() {
+  function pad(number) {
+    if ( number < 10 ) {
+      return '0' + number;
+    }
+    return number;
+  }
+
+  return this.getUTCFullYear() +
+    '-' + pad( this.getUTCMonth() + 1 ) +
+    '-' + pad( this.getUTCDate() ) +
+    'T' + pad( this.getUTCHours() ) +
+    ':' + pad( this.getUTCMinutes() ) +
+    ':' + pad( this.getUTCSeconds() ) +
+    '.' + (this.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5) +
+    'Z';
+};
+
+if (Ember.SHIM_ES5) {
+  if (!Date.prototype.toISOString) {
+    Date.prototype.toISOString = toISOString;
+  }
+}
+
+export default Transform.extend({
   deserialize: function(serialized) {
     var type = typeof serialized;
 
-    if (type === "string") {
+    if (type === 'string') {
       return new Date(Ember.Date.parse(serialized));
-    } else if (type === "number") {
+    } else if (type === 'number') {
       return new Date(serialized);
     } else if (serialized === null || serialized === undefined) {
       // if the value is not present in the data,
@@ -17,30 +45,9 @@ RESTless.DateTransform = RESTless.Transform.extend({
 
   serialize: function(date) {
     if (date instanceof Date) {
-      var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-      var pad = function(num) {
-        return num < 10 ? "0"+num : ""+num;
-      };
-
-      var utcYear = date.getUTCFullYear(),
-          utcMonth = date.getUTCMonth(),
-          utcDayOfMonth = date.getUTCDate(),
-          utcDay = date.getUTCDay(),
-          utcHours = date.getUTCHours(),
-          utcMinutes = date.getUTCMinutes(),
-          utcSeconds = date.getUTCSeconds();
-
-
-      var dayOfWeek = days[utcDay];
-      var dayOfMonth = pad(utcDayOfMonth);
-      var month = months[utcMonth];
-
-      return dayOfWeek + ", " + dayOfMonth + " " + month + " " + utcYear + " " +
-             pad(utcHours) + ":" + pad(utcMinutes) + ":" + pad(utcSeconds) + " GMT";
+      return toISOString.call(date);
     } else {
       return null;
     }
-  } 
+  }
 });

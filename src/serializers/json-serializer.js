@@ -1,3 +1,10 @@
+import Serializer from './serializer';
+import JSONTransforms from '../transforms/json';
+import Model from '../model/model';
+import RecordArray from '../model/record-array';
+
+var get = Ember.get;
+
 /**
   Handles transforming json data to Models and Models to json data.
 
@@ -5,8 +12,7 @@
   @namespace RESTless
   @extends RESTless.Serializer
 */
-RESTless.JSONSerializer = RESTless.Serializer.extend({
-
+var JSONSerializer = Serializer.extend({
   /**
     Type of data to serialize.
     @property dataType
@@ -30,9 +36,11 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @return {RESTless.Model}
   */
   deserialize: function(resource, data) {
-    if(!data) { return resource; }
-
     var key, prop, meta;
+
+    if(!data) { 
+      return resource;
+    }
 
     // Check for wrapped object by resource name: { post: { id:1, name:'post 1' } }
     // This is the default from ActiveRecord
@@ -67,18 +75,20 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @param {Object} value json data value
   */
   deserializeProperty: function(resource, prop, value) {
-    var attrName = this.attributeNameForKey(resource.constructor, prop),
-        fields = get(resource.constructor, 'fields'),
-        field = fields.get(attrName), type, klass, belongsToModel;
+    var attrName = this.attributeNameForKey(resource.constructor, prop);
+    var fields = get(resource.constructor, 'fields');
+    var field = fields[attrName];
+    var type, klass, belongsToModel, hasManyArr;
 
     // If the json contains a key not defined on the model, don't attempt to set it.
-    if (!field) { return; }
-
+    if (!field) { 
+      return; 
+    }
     type = field.type;
 
     // If property is a hasMany relationship, deserialze the array
     if (field.hasMany) {
-      var hasManyArr = this.deserializeMany(resource.get(attrName), type, value);
+      hasManyArr = this.deserializeMany(resource.get(attrName), type, value);
       resource.set(attrName, hasManyArr);
     } 
     // If property is a belongsTo relationship, deserialze that model
@@ -91,8 +101,8 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     }
     else {
       // Check for a custom transform
-      if (type && RESTless.JSONTransforms[type]) {
-        value = RESTless.JSONTransforms[type].deserialize(value);
+      if (type && JSONTransforms[type]) {
+        value = JSONTransforms[type].deserialize(value);
       }
       resource.set(attrName, value);
     }
@@ -107,25 +117,29 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @return {RESTless.RecordArray}
   */
   deserializeMany: function(recordArray, type, data) {
-    if(!data) { return recordArray; }
+    var arrayData, meta, i, len, item, content, klass;
 
-    var arrayData = this._arrayDataForType(type, data);
-    var meta, i, len, item, content, klass;
+    if(!data) { 
+      return recordArray;
+    }
 
-    if(!arrayData) { return recordArray; }
+    arrayData = this._arrayDataForType(type, data);
+    if(!arrayData) { 
+      return recordArray;
+    }
 
     if(recordArray) {
       recordArray.set('isLoaded', false);
       recordArray.clear();
     } else {
-      recordArray = RESTless.RecordArray.createWithContent();
+      recordArray = RecordArray.createWithContent();
     }
 
     len = arrayData.length;
     if(len) {
       content = [];
       klass = this.modelFor(type);
-      for(i=0; i<len; i++) {
+      for(i = 0; i < len; i++) {
         item = arrayData[i];
         if(klass && typeof item === 'object') {
           item = klass.create({ isNew: false }).deserialize(item);
@@ -137,10 +151,11 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
 
     // extract any meta info
     meta = this.extractMeta(data);
-    if(meta) { recordArray.set('meta', meta); }
+    if(meta) { 
+      recordArray.set('meta', meta);
+    }
 
     recordArray.setProperties({ isLoaded: true, isDirty: false });
-
     return recordArray;
   },
 
@@ -152,31 +167,37 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @return {Object} json data
   */
   serialize: function(resource, options) {
-    if(!resource) { return null; }
+    var fields, json, field, fieldMeta, value, wrapped;
 
-    var fields = get(resource.constructor, 'fields'),
-        json = {};
+    if(!resource) { 
+      return null; 
+    }
 
-    fields.forEach(function(fieldOpts, field) {
-      //Don't include readOnly properties or to-one relationships (unless specified)
-      if (!fieldOpts.readOnly && (!fieldOpts.belongsTo || (fieldOpts.belongsTo && options && options.includeRelationships))) {
-        var val = this.serializeProperty(resource, field, fieldOpts);
-        if(val !== null) {
-          json[this.keyForAttributeName(field)] = val;
+    fields = get(resource.constructor, 'fields');
+    json = {};
+
+    for (field in fields) {
+      if (fields.hasOwnProperty(field)) {
+        fieldMeta = fields[field];
+        //Don't include readOnly properties or to-one relationships (unless specified)
+        if (!fieldMeta.readOnly && (!fieldMeta.belongsTo || (fieldMeta.belongsTo && options && options.includeRelationships))) {
+          value = this.serializeProperty(resource, field, fieldMeta);
+          if(value !== null) {
+            json[this.keyForAttributeName(field)] = value;
+          }
         }
       }
-    }, this);
+    }
 
     // By default, serialzed records are wrapped in a resource-named object
-    // { post: { id:1, name:"first post" } }
-    // The option 'nonEmbedded' returns { id:1, name:"first post" }
+    // { post: { id:1, name:'first post' } }
+    // The option 'nonEmbedded' returns { id:1, name:'first post' }
     if(options && options.nonEmbedded) {
       return json;
-    } else {
-      var wrapped = {};
-      wrapped[this._keyForResource(resource)] = json;
-      return wrapped;
     }
+    wrapped = {};
+    wrapped[this._keyForResource(resource)] = json;
+    return wrapped;
   },
 
   /**
@@ -188,22 +209,22 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @return {Object} json value
   */
   serializeProperty: function(resource, prop, opts) {
-    var value = resource.get(prop), type;
+    var type, value, transform;
 
-    if (!opts) {
-      opts = resource.constructor.metaForProperty(prop);
-    }
+    opts = opts || resource.constructor.metaForProperty(prop);
     type = opts.type;
+    value = resource.get(prop);
 
-    if (opts && opts.hasMany) {
+    if (opts.hasMany) {
       return this.serializeMany(value, type);
-    } else if(opts.belongsTo) {
+    } else if (opts.belongsTo) {
       return this.serialize(value, { nonEmbedded: true });
     }
 
     //Check for a custom transform
-    if(opts.type && RESTless.JSONTransforms[type]) {
-      value = RESTless.JSONTransforms[type].serialize(value);
+    transform = JSONTransforms[type];
+    if(opts.type && transform) {
+      value = transform.serialize(value);
     }
     return value;
   },
@@ -216,13 +237,14 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @return {Object} json array
   */
   serializeMany: function(recordArray, type) {
-    var key = this._keyForResourceType(type),
-        array = recordArray.get('content'),
-        len = array.length,
-        result = [], i, item;
-    for(i=0; i<len; i++) {
+    var key = this._keyForResourceType(type);
+    var array = recordArray.get('content');
+    var len = array.length;
+    var result = [], i, item;
+
+    for(i = 0; i < len; i++) {
       item = array[i];
-      if(RESTless.Model.detectInstance(item)) {
+      if(Model.detectInstance(item)) {
         item = item.serialize();
       }
       result.push(item[key]);
@@ -260,9 +282,11 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
    */
   attributeNameForKey: function(klass, key) {
     // check if a custom key was configured for this property
-    var modelConfig = get(RESTless, 'client.adapter.configurations.models').get(get(klass, '_configKey'));
-    if(modelConfig && modelConfig.propertyKeys && modelConfig.propertyKeys[key]) {
-      return modelConfig.propertyKeys[key];
+    var modelConfig = get(klass, 'adapter.configurations.models');
+    var configForKey = modelConfig && modelConfig.get(get(klass, '_configKey'));
+    var keys = configForKey && configForKey.propertyKeys;
+    if(keys && keys[key]) {
+      return keys[key];
     }
     return Ember.String.camelize(key);
   },
@@ -282,7 +306,9 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
   */
   parseError: function(error) {
     var errorData = null;
-    try { errorData = JSON.parse(error); } catch(e){}
+    try { 
+      errorData = JSON.parse(error);
+    } catch(e){}
     return errorData;
   },
   /**
@@ -291,9 +317,7 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @return Object
   */
   extractMeta: function(json) {
-    if(json && json.meta) {
-      return json.meta;
-    }
+    return json && json.meta;
   },
   /**
     To register a custom attribute transform. Adds to JSONTransforms.
@@ -302,7 +326,7 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @parma {Object} custom serialize and deserialize method hash
   */
   registerTransform: function(type, transform) {
-    RESTless.JSONTransforms[type] = transform;
+    JSONTransforms[type] = transform;
   },
 
   /**
@@ -335,14 +359,15 @@ RESTless.JSONSerializer = RESTless.Serializer.extend({
     @private
   */
   _arrayDataForType: function(type, data) {
+    var keyPlural, dataForKey;
     if(Ember.isArray(data)) {
       return data;
-    } else {
-      var keyPlural = this._keyPluralForResourceType(type);
-      if(data[keyPlural]) {
-        return data[keyPlural];
-      }
     }
-    return null;
+
+    keyPlural = this._keyPluralForResourceType(type);
+    dataForKey = data[keyPlural];
+    return dataForKey || null;
   }
 });
+
+export default JSONSerializer;

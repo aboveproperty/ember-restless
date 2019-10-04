@@ -1,3 +1,14 @@
+import RecordArray from './record-array';
+
+var merge = Ember.merge;
+var computed = Ember.computed;
+var supportsNewComputedSyntax = true;
+try {
+  computed({ set: function(){}, get: function(){} });
+} catch(e) {
+  supportsNewComputedSyntax = false;
+}
+
 /**
   Defines an attribute on a Model.
   Supports types: 'string', 'number', 'boolean', 'date'.
@@ -8,10 +19,10 @@
   @param {Object} [opts] a hash of options
   @return {Ember.computed} attribute
 */
-RESTless.attr = function(type, opts) {
+function attr(type, opts) {
   var meta = merge({ type: type, isAttribute: true }, opts);
   return makeComputedAttribute(meta);
-};
+}
 
 /**
   Defines a one-to-one relationship attribute on a Model.
@@ -22,10 +33,10 @@ RESTless.attr = function(type, opts) {
   @param {Object} [opts] a hash of options
   @return {Ember.computed} attribute
 */
-RESTless.belongsTo = function(type, opts) {
+function belongsTo(type, opts) {
   var meta = merge({ type: type, isRelationship: true, belongsTo: true }, opts);
   return makeComputedAttribute(meta);
-};
+}
 
 /**
   Defines a one-to-many relationship attribute on a Model.
@@ -36,38 +47,61 @@ RESTless.belongsTo = function(type, opts) {
   @param {Object} [opts] a hash of options
   @return {Ember.computed} attribute
 */
-RESTless.hasMany = function(type, opts) {
+function hasMany(type, opts) {
   var defaultArray = function() {
-    return RESTless.RecordArray.createWithContent();
+    return RecordArray.createWithContent();
   },
   meta = merge({ type: type, isRelationship: true, hasMany: true, defaultValue: defaultArray }, opts);
   return makeComputedAttribute(meta);
-};
+}
+
+function computedAttributeGet(key, meta) {
+  var data = this.get('_data');
+  var value = data[key];
+
+  if (value === undefined) { 
+    if (typeof meta.defaultValue === 'function') {
+      value = meta.defaultValue.call(this);
+    } else {
+      value = meta.defaultValue;
+    }
+    data[key] = value;
+  }
+  return value;
+}
+
+function computedAttributeSet(key, value, meta) {
+  var data = this.get('_data');
+  if (value !== data[key]) {
+    data[key] = value;
+    if (!meta.readOnly) {
+      this._onPropertyChange(key);
+    }
+  }
+  return value;
+}
 
 function makeComputedAttribute(meta) {
-  return computed(function(key, value) {
-    var data = this.get('_data');
-    // Getter
-    if (arguments.length === 1) {
-      value = data[key];
+  var computedAttribute;
+  if (supportsNewComputedSyntax) {
+    computedAttribute = {
+      get: function(key) {
+        return computedAttributeGet.call(this, key, meta);
+      },
+      set: function(key, value) {
+        return computedAttributeSet.call(this, key, value, meta);
+      }
+    };
+  } else {
+    computedAttribute = function(key, value) {
+      if (arguments.length === 1) {
+        return computedAttributeGet.call(this, key, meta);
+      }
+      return computedAttributeSet.call(this, key, value, meta);
+    };
+  }
 
-      if (value === undefined) { 
-        // Default values
-        if (typeof meta.defaultValue === 'function') {
-          value = meta.defaultValue.call(this);
-        } else {
-          value = meta.defaultValue;
-        }
-        data[key] = value;
-      }
-    }
-    // Setter 
-    else if (value !== data[key]) {
-      data[key] = value;
-      if (!meta.readOnly && !RESTless.ReadOnlyModel.detectInstance(this)) {
-        this._onPropertyChange(key);
-      }
-    }
-    return value;
-  }).property('_data').meta(meta);
+  return computed('_data', computedAttribute).meta(meta);
 }
+
+export { attr, belongsTo, hasMany };

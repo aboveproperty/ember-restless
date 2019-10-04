@@ -1,3 +1,5 @@
+var noop = Ember.K;
+
 /**
   The State Mixin is responsible for keeping state and
   handling state events for Models.
@@ -6,7 +8,7 @@
   @namespace RESTless
   @uses Ember.Evented
 */
-RESTless.State = Ember.Mixin.create( Ember.Evented, {
+var State = Ember.Mixin.create( Ember.Evented, {
   /**
     Model has not yet been saved; not yet assigned a primary key.
     @property isNew
@@ -144,10 +146,11 @@ RESTless.State = Ember.Mixin.create( Ember.Evented, {
     @returns {Object} the cloned object with copied state
    */
   copyState: function(clone) {
-    var mi = RESTless.State.mixins,
-        props = mi[mi.length-1].properties;
+    var mixins = State.mixins;
+    var props = mixins[mixins.length-1].properties, p;
+    
     Ember.beginPropertyChanges(clone);
-    for(var p in props) { 
+    for(p in props) { 
       if(props.hasOwnProperty(p) && typeof props[p] !== 'function') {
         clone.set(p, this.get(p));
       }
@@ -176,3 +179,5 @@ RESTless.State = Ember.Mixin.create( Ember.Evented, {
     });
   }
 });
+
+export default State;

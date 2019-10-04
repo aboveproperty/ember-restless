@@ -121,15 +121,14 @@ test('attributes can have default values', function() {
 
 
 test('attributes can have a default value functions', function() {
-  var valueFunction = sinon.spy(function() { return new Date(); }),
-      model = RL.Model.extend({ createdAt: RL.attr('date', { defaultValue: valueFunction }) }),
-      record = model.create();
-
+  var valueFunction = function() { return new Date(); };
+  var Model = RL.Model.extend({ 
+    createdAt: RL.attr('date', { defaultValue: valueFunction })
+  });
+  var record = Model.create();
   var createdAt = record.get('createdAt');
-
   ok( createdAt, 'defaultValue function used when no value');
-  equal( record.get('createdAt'), createdAt, "repeated calls return same value");
-  ok( valueFunction.calledOnce, "function only called once");
+  equal( record.get('createdAt'), createdAt, 'repeated calls return same value');
 });
 
 
@@ -199,13 +198,26 @@ test('can set a different adapter per model', function() {
 });
 
 
-asyncTest('event hooks', function() {
-  expect(1);
+test('event hooks', function() {
+  expect(6);
   App.Comment.reopen({
-    becameError: function (error) {
-      ok( 1, 'event hook was invoked' );
-      start();
+    didCreate: function () {
+      ok( 1, 'create event hook was invoked' );
+    },
+    didUpdate: function () {
+      ok( 1, 'update event hook was invoked' );
+    },
+    didLoad: function () {
+      ok( 1, 'load event hook was invoked by onSaved 2x and onLoaded' );
+    },
+    becameError: function () {
+      ok( 1, 'error event hook was invoked' );
     }
   });
-  var comment = App.Comment.find(1).currentRequest.abort();
+
+  var comment = App.Comment.create();
+  comment.onSaved(true);
+  comment.onSaved(false);
+  comment.onLoaded();
+  comment.onError();
 });

@@ -1,3 +1,7 @@
+var get = Ember.get;
+var merge = Ember.merge;
+var RSVPPromise = Ember.RSVP.Promise;
+
 /**
   Adapters handle sending and fetching data to and from a persistence layer.
   This is a base class to be subclassed. Subclasses should implement:
@@ -7,7 +11,7 @@
   @namespace RESTless
   @extends Ember.Object
 */
-RESTless.Adapter = Ember.Object.extend({
+var Adapter = Ember.Object.extend({
   /**
     Instance of a Serializer used to transform data
     @property serializer
@@ -26,7 +30,8 @@ RESTless.Adapter = Ember.Object.extend({
   find: function(klass, params) {
     var primaryKey = get(klass, 'primaryKey'), key;
     var typeofParams = typeof params;
-    var singleResourceRequest = typeofParams === 'string' || typeofParams === 'number' || (typeofParams === 'object' && params.hasOwnProperty(primaryKey));
+    var singleResourceRequest = typeofParams === 'string' || typeofParams === 'number' || 
+                               (typeofParams === 'object' && params.hasOwnProperty(primaryKey));
     
     if(singleResourceRequest) {
       if(!params.hasOwnProperty(primaryKey)) {
@@ -47,8 +52,8 @@ RESTless.Adapter = Ember.Object.extend({
     @return Ember.RSVP.Promise
   */
   fetch: function(klass, params) {
-    var adapter = this, find,
-    promise = new RSVPPromise(function(resolve, reject) {
+    var adapter = this, find;
+    var promise = new RSVPPromise(function(resolve, reject) {
       find = adapter.find(klass, params);
       find.one('didLoad', function(model) {
         resolve(model);
@@ -74,8 +79,8 @@ RESTless.Adapter = Ember.Object.extend({
     var key = record.get(primaryKey);
 
     // Can't reload a record that hasn't been stored yet (no primary key)
-    if(isNone(key)) {
-      return new RSVPPromise(function(resolve, reject){
+    if(Ember.isNone(key)) {
+      return new RSVPPromise(function(resolve, reject) {
         reject(null);
       });
     }
@@ -104,8 +109,8 @@ RESTless.Adapter = Ember.Object.extend({
     @chainable
   */
   configure: function(type, value) {
-    var configs = this.get('configurations'),
-        configForType = configs.get(type);
+    var configs = this.get('configurations');
+    var configForType = configs.get(type);
     if(configForType) {
       configs.set(type, merge(configForType, value));
     }
@@ -119,7 +124,7 @@ RESTless.Adapter = Ember.Object.extend({
     @param {Object} config config value
     @chainable
     @example
-      <pre class="prettyprint">
+      <pre class='prettyprint'>
       App.Adapter.map('post', { primaryKey: 'slug' });
       App.Adapter.map('person', { lastName: { key: 'lastNameOfPerson' } });</pre>
   */
@@ -160,7 +165,7 @@ RESTless.Adapter = Ember.Object.extend({
   */
   pluralize: function(resourceName) {
     var plurals = this.get('configurations.plurals');
-    return (plurals && plurals[resourceName]) || resourceName + 's';
+    return plurals && plurals[resourceName] || resourceName + 's';
   },
 
   /**
@@ -172,3 +177,5 @@ RESTless.Adapter = Ember.Object.extend({
     this.get('serializer').registerTransform(type, transform);
   }
 });
+
+export default Adapter;

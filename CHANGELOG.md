@@ -2,7 +2,50 @@
 
 The change log documents features and breaking changes for each version.  
 While RESTless reaches a 1.0 release and more feedback and testing continues, the API is subject to change.  
-To keep the library small, API depreciation warnings may not be added.
+To keep the library small, API deprecation warnings will not be added.
+
+### 0.7.7 - 0.7.13
+- Fix deprecations and errors to support ember 2.0
+
+### 0.7.6
+- The RESTless library and its individual modules can now be imported in ember-cli apps
+- Removed fixture and local storage adapters from main repo.
+
+### 0.7.5
+- Fix errors & deprecation warnings when using with ember 1.12.0+
+
+### 0.7.4
+- Can now be easily included in apps as an ember-cli addon
+
+### 0.7.3
+
+- Allow the RESTAdapter's ajax method to be overridden.  Allows you to manually modify params or swap in something other than jQuery ajax.
+- NOTE: the **_private_** `currentRequest` property on models is now a pointer to a promise instead of the jQuery.ajax call.
+
+### 0.7.2
+
+- Bug fix: remove usage of private Ember method that was removed in canary.
+
+### 0.7.1
+
+- Using esperanto for ES6 module transpiler
+
+### 0.7.0
+
+- Converted code to ES6 modules
+
+### 0.6.2
+
+- Gulp for task runner instead of Grunt
+- `host` property in RESTAdapter now respects protocol-less assignments
+- Update date serialization to toISOString
+- Removing old, long deprecated properties/methods
+- Using Pretender in tests for XHRs
+
+### 0.6.1
+
+- Bug fix to support Ember 1.8.0 which changed method signiture of Ember.Map.forEach
+- Now using bower to install testing libs instead of packaging with project
 
 ### 0.7.0
 
@@ -12,7 +55,7 @@ To keep the library small, API depreciation warnings may not be added.
 
 - Support usage with ES6 modules / ember-cli
 - Deprecated namespaces in relationship attrs & configurations. Should now reference models e.g. `'post'` instead of `'App.Post'`
-- No longer distrubting 'extras' builds, but still able to build it yourself.
+- No longer distributing 'extras' builds, but still able to build it yourself.
 
 ### 0.5.4, 0.5.5
 

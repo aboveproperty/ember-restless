@@ -1,3 +1,11 @@
+import Adapter from './adapter';
+import JSONSerializer from '../serializers/json-serializer';
+import RecordArray from '../model/record-array';
+
+var RSVPPromise = Ember.RSVP.Promise;
+var get = Ember.get;
+var $ = Ember.$;
+
 /**
   The REST Adapter handles sending and fetching data to and from a REST API.
 
@@ -5,14 +13,14 @@
   @namespace RESTless
   @extends RESTless.Adapter
 */
-RESTless.RESTAdapter = RESTless.Adapter.extend({
+var RESTAdapter = Adapter.extend({
   /**
     Serializer used to transform data.
     @property serializer
     @type RESTless.Serializer
     @default RESTless.JSONSerializer
    */
-  serializer: RESTless.JSONSerializer.create(),
+  serializer: JSONSerializer.create(),
 
   /**
     Host url of the REST API if on a different domain than the app.
@@ -21,14 +29,7 @@ RESTless.RESTAdapter = RESTless.Adapter.extend({
     @optional
     @example 'http://api.example.com'
    */
-  host: oneWay('url'),
-  /**
-    Deprecated.
-    @property url
-    @type String
-    @deprecated Use: `host`
-   */
-  url: null,
+  host: null,
 
   /**
     API namespace endpoint path
@@ -45,16 +46,17 @@ RESTless.RESTAdapter = RESTless.Adapter.extend({
     @property headers
     @type Object
     @optional
-    @example '{ "X-API-KEY" : "abc1234" }'
+    @example '{ 'X-API-KEY' : 'abc1234' }'
     */
   headers: null,
+  
   /**
     If an API requires paramters to be set on every request,
     e.g. an api key, you can add a hash of defaults.
     @property defaultData
     @type Object
     @optional
-    @example '{ api_key: "abc1234" }'
+    @example '{ api_key: 'abc1234' }'
     */
   defaultData: null,
 
@@ -69,23 +71,26 @@ RESTless.RESTAdapter = RESTless.Adapter.extend({
   useContentTypeExtension: false,
 
   /**
-    Computed path based on host and namespace.
+    Root url path based on host and namespace.
     @property rootPath
     @type String
-    @final
    */
-  rootPath: computed(function() {
-    var a = document.createElement('a'),
-        host = this.get('host'),
-        ns = this.get('namespace'),
-        rootReset = ns && ns.charAt(0) === '/';
-
-    a.href = host ? host : '/';
-    if(ns) {
-      a.pathname = rootReset ? ns : (a.pathname + ns);
+  rootPath: Ember.computed('host', 'namespace', function() {
+    var rootPath = this.get('host') || '/';
+    var namespace = this.get('namespace');
+    
+    if (namespace) {
+      if (rootPath.slice(-1) === '/') {
+        rootPath = rootPath.slice(0, -1);
+      }
+      if (namespace.charAt(0) === '/') {
+        namespace = namespace.slice(1);
+      }
+      rootPath = rootPath + '/' + namespace;
     }
-    return a.href.replace(/\/+$/, '');
-  }).property('host', 'namespace'),
+
+    return rootPath.replace(/\/+$/, '');
+  }),
 
   /**
     Helper method creates a valid REST path to a resource
@@ -99,29 +104,36 @@ RESTless.RESTAdapter = RESTless.Adapter.extend({
   },
 
   /**
-    Creates and executes an ajax request wrapped in a promise.
-    @method request
+    Builds the url, params, and triggers an ajax request
     @param {Object} [options] hash of request options
     @return {Ember.RSVP.Promise}
    */
   request: function(options) {
-    var adapter = this;
-    var ajaxParams = this.prepareParams(options.params);
     var klass = options.type || options.model.constructor;
+    var ajaxParams = this.prepareParams(options.params);
     ajaxParams.url = this.buildUrl(options.model, options.key, klass);
+    var ajax = this.ajax(ajaxParams);
+    // store the ajax promise as 'currentRequest' on the model (private)
+    options.model.currentRequest = ajax;
+    return ajax;
+  },
 
+  /**
+    Executes a jQuery ajax request wrapped in a promise.
+    @param {Object} [options] hash of jQuery ajax options
+    @return {Ember.RSVP.Promise}
+   */
+  ajax: function(options) {
+    var adapter = this;
     return new RSVPPromise(function(resolve, reject) {
-      ajaxParams.success = function(data) {
+      options.success = function(data) {
         Ember.run(null, resolve, data);
       };
-      ajaxParams.error = function(jqXHR, textStatus, errorThrown) {
+      options.error = function(jqXHR, textStatus, errorThrown) {
         var errors = adapter.parseAjaxErrors(jqXHR, textStatus, errorThrown);
         Ember.run(null, reject, errors);
       };
-
-      var ajax = Ember.$.ajax(ajaxParams);
-      // (private) store current ajax request on the model.
-      options.model.currentRequest = ajax;
+      $.ajax(options);
     });
   },
 
@@ -190,7 +202,7 @@ RESTless.RESTAdapter = RESTless.Adapter.extend({
     var isNew = record.get('isNew'), ajaxPromise;
     //If an existing model isn't dirty, no need to save.
     if(!isNew && !record.get('isDirty')) {
-      return new RSVPPromise(function(resolve, reject){
+      return new RSVPPromise(function(resolve){
         resolve(record);
       });
     }
@@ -250,7 +262,7 @@ RESTless.RESTAdapter = RESTless.Adapter.extend({
     var key = record.get(primaryKey), ajaxPromise;
 
     // Can't reload a record that hasn't been stored yet (no primary key)
-    if(isNone(key)) {
+    if(Ember.isNone(key)) {
       return new RSVPPromise(function(resolve, reject){
         reject(null);
       });
@@ -290,7 +302,7 @@ RESTless.RESTAdapter = RESTless.Adapter.extend({
     @return {RESTless.RecordArray}
    */
   findQuery: function(klass, queryParams) {
-    var array = RESTless.RecordArray.createWithContent();
+    var array = RecordArray.createWithContent();
     var ajaxPromise = this.request({
       params: { data: queryParams },
       type : klass,
@@ -349,3 +361,5 @@ RESTless.RESTAdapter = RESTless.Adapter.extend({
     return errors;
   }
 });
+
+export default RESTAdapter;

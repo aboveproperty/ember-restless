@@ -1,18 +1,25 @@
+import RESTless from '../core';
+import ModelStateMixin from './state';
+import RecordArray from './record-array';
+import { attr } from './attribute';
+
+var computed = Ember.computed;
+var get = Ember.get;
+
 /**
   The base model class for all RESTless objects.
 
   @class Model
   @namespace RESTless
   @extends Ember.Object
-  @uses RESTless.State
   @uses Ember.Copyable
 */
-RESTless.Model = Ember.Object.extend( RESTless.State, Ember.Copyable, {
+var Model = Ember.Object.extend( ModelStateMixin, Ember.Copyable, {
   /** 
     A unique id number for the record. `id` is the default primary key.
     @property id
    */
-  id: RESTless.attr('number'),
+  id: attr('number'),
 
   /**
     Stores raw model data. Don't use directly; use declared model attributes.
@@ -20,7 +27,9 @@ RESTless.Model = Ember.Object.extend( RESTless.State, Ember.Copyable, {
    */
   __data: null,
   _data: computed(function() {
-    if (!this.__data) { this.__data = {}; }
+    if (!this.__data) { 
+      this.__data = {};
+    }
     return this.__data;
   }),
 
@@ -29,9 +38,8 @@ RESTless.Model = Ember.Object.extend( RESTless.State, Ember.Copyable, {
     @protected
    */
   didDefineProperty: function(proto, key, value) {
-    if (value instanceof Ember.Descriptor) {
+    if (value instanceof Ember.ComputedProperty) {
       var meta = value.meta();
-
       if (meta.isRelationship && !meta.readOnly) {
         // If a relationship's property becomes dirty, need to mark owner as dirty.
         Ember.addObserver(proto, key + '.isDirty', null, '_onRelationshipChange');
@@ -72,20 +80,22 @@ RESTless.Model = Ember.Object.extend( RESTless.State, Ember.Copyable, {
     Creates a clone of the model. Implements Ember.Copyable protocol
     <http://emberjs.com/api/classes/Ember.Copyable.html#method_copy>
     @method copy
-    @param {Boolean} deep if `true`, a deep copy of the object should be made
     @return {Object} copy of receiver
    */
-  copy: function(deep) {
-    var clone = this.constructor.create(),
-        fields = get(this.constructor, 'fields');
+  copy: function() {
+    var clone = this.constructor.create();
+    var fields = get(this.constructor, 'fields');
+    var field, value;
 
     Ember.beginPropertyChanges(this);
-    fields.forEach(function(opts, field) {
-      var value = this.get(field);
-      if (value !== null) {
-        clone.set(field, value);
+    for (field in fields) {
+      if (fields.hasOwnProperty(field)) {
+        value = this.get(field);
+        if (value !== null) {
+          clone.set(field, value);
+        }
       }
-    }, this);
+    }
     Ember.endPropertyChanges(this);
 
     return clone;
@@ -94,11 +104,10 @@ RESTless.Model = Ember.Object.extend( RESTless.State, Ember.Copyable, {
   /**
     Creates a clone copy of the model along with it's current State.
     @method copyWithState
-    @param {Boolean} deep if `true`, a deep copy of the object should be made
     @return {Object} copy of receiver
    */
-  copyWithState: function(deep) {
-    return this.copyState(this.copy(deep));
+  copyWithState: function() {
+    return this.copyState(this.copy());
   },
 
   /**
@@ -171,7 +180,7 @@ RESTless.Model = Ember.Object.extend( RESTless.State, Ember.Copyable, {
   @class Model
   @namespace RESTless
 */
-RESTless.Model.reopenClass({
+Model.reopenClass({
   /** 
     Extends super class `create` and marks _isReady state.
     @method create
@@ -182,22 +191,15 @@ RESTless.Model.reopenClass({
     instance.set('_isReady', true);
     return instance;
   },
-  /** 
-    Alias to `create`. Eases transition to/from ember-data
-    @deprecated Use `create`
-    @method createRecord
-    @return RESTless.Model
-   */
-  createRecord: Ember.aliasMethod('create'),
 
   /** 
     The adapter for the Model. Provides a hook for overriding.
     @property adapter
     @type RESTless.Adapter
    */
-  adapter: computed(function() {
+  adapter: computed('RESTless.client.adapter', function() {
     return get(RESTless, 'client.adapter');
-  }).property('RESTless.client.adapter'),
+  }),
 
   /** 
     The property name for the primary key
@@ -205,13 +207,12 @@ RESTless.Model.reopenClass({
     @type String
     @default 'id'
    */
-  primaryKey: computed(function() {
-    var modelConfig = get(RESTless, 'client.adapter.configurations.models').get(get(this, '_configKey'));
-    if(modelConfig && modelConfig.primaryKey) {
-      return modelConfig.primaryKey;
-    }
-    return 'id';
-  }).property('RESTless.client.adapter.configurations.models'),
+  primaryKey: computed('adapter', function() {
+    var modelConfig = get(this, 'adapter.configurations.models'); 
+    var configForKey = modelConfig && modelConfig.get(get(this, '_configKey'));
+    var primaryKey = configForKey && configForKey.primaryKey;
+    return primaryKey || 'id';
+  }),
 
   /** 
     The name of the resource, derived from the class name.
@@ -243,9 +244,9 @@ RESTless.Model.reopenClass({
     @type String
     @private
    */
-  _configKey: computed(function() {
+  _configKey: computed('resourceName', function() {
     return Ember.String.camelize(get(this, 'resourceName'));
-  }).property('resourceName'),
+  }),
 
   /** 
     Meta information for all attributes and relationships
@@ -253,13 +254,13 @@ RESTless.Model.reopenClass({
     @type Ember.Map
    */
   fields: computed(function() {
-    var map = Ember.Map.create();
+    var fields = {};
     this.eachComputedProperty(function(name, meta) {
       if (meta.isAttribute || meta.isRelationship) {
-        map.set(name, meta);
+        fields[name] = meta;
       }
     });
-    return map;
+    return fields;
   }),
 
   /** 
@@ -308,13 +309,6 @@ RESTless.Model.reopenClass({
   findByKey: function(key, params) {
     return get(this, 'adapter').findByKey(this, key, params);
   },
-  /** 
-    Find resource with specified id using the adapter.
-    Keeps API similar to ember-data.
-    @method findById
-    @deprecated Use `findByKey`
-   */
-  findById: Ember.aliasMethod('findByKey'),
 
   /** 
     Create model directly from data representation.
@@ -323,7 +317,10 @@ RESTless.Model.reopenClass({
     @return RESTless.Model
    */
   load: function(data) {
-    var model = this.create().set('_isReady', false).deserialize(data).set('_isReady', true);
+    var model = this.create();
+    model.set('_isReady', false);
+    model.deserialize(data);
+    model.set('_isReady', true);
     model.onLoaded();
     return model;
   },
@@ -334,8 +331,10 @@ RESTless.Model.reopenClass({
     @return RESTless.RecordArray
    */
   loadMany: function(data) {
-    var array = RESTless.RecordArray.create().deserializeMany(this, data);
+    var array = RecordArray.createWithContent().deserializeMany(this, data);
     array.onLoaded();
     return array;
   }
 });
+
+export default Model;

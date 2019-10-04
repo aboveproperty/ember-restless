@@ -1,29 +1,33 @@
 {
   "name": "ember-restless",
   "title": "Ember RESTless",
-  "description": "A lightweight data persistence library for Ember.js",
-  "version": "0.7.0",
-  "main": "Gruntfile.js",
-  "repository": "https://github.com/endlessinc/ember-restless.git",
-  "homepage": "https://github.com/endlessinc/ember-restless",
-  "author": "Garth Poitras",
+  "description": "A lightweight data model library for Ember.js",
+  "version": "0.7.14",
+  "repository": "https://github.com/bustlelabs/ember-restless.git",
+  "homepage": "https://github.com/bustlelabs/ember-restless",
+  "author": "Garth Poitras <garth@bustle.com>",
   "license": "MIT",
   "keywords": [
     "ember",
+    "ember-addon",
     "ember-data",
     "REST",
-    "model"
+    "model",
+    "json"
   ],
-  "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-cli": "^0.1.13",
-    "grunt-contrib-clean": "^0.6.0",
-    "grunt-contrib-concat": "^0.5.0",
-    "grunt-contrib-jshint": "^0.10.0",
-    "grunt-contrib-qunit": "^0.5.2",
-    "grunt-contrib-yuidoc": "^0.5.2"
-  },
   "scripts": {
-    "test": "grunt ci --verbose"
+    "build": "gulp build",
+    "test": "gulp test --verbose"
+  },
+  "devDependencies": {
+    "del": "^2.2.0",
+    "esperanto": "^0.7.0",
+    "gulp": "^3.9.0",
+    "gulp-file": "^0.2.0",
+    "gulp-header": "^1.7.1",
+    "gulp-jshint": "^1.12.0",
+    "gulp-open": "^1.0.0",
+    "gulp-qunit": "^1.3.0",
+    "gulp-replace": "^0.5.4"
   }
 }
